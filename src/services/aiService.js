@@ -1,13 +1,12 @@
 import { GoogleGenerativeAI, SchemaType as Type } from "@google/generative-ai";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(API_KEY || "dummy_key");
-
-export const generateMealPlan = async (userInput) => {
+export const generateMealPlan = async (userInput, customApiKey) => {
+  const API_KEY = customApiKey || import.meta.env.VITE_GEMINI_API_KEY;
   if (!API_KEY) {
-    throw new Error("Missing VITE_GEMINI_API_KEY. Please add it to your .env file.");
+    throw new Error("Missing Gemini API Key. Please enter your API Key in the field at the top.");
   }
   
+  const genAI = new GoogleGenerativeAI(API_KEY);
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     generationConfig: {
