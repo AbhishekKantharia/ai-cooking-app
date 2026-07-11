@@ -15,10 +15,10 @@ const validateMealData = (data) => {
   return data;
 };
 
-export const generateMealPlan = async (userInput, customApiKey) => {
-  const API_KEY = customApiKey || import.meta.env.VITE_GEMINI_API_KEY;
+export const generateMealPlan = async (userInput) => {
+  const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
   if (!API_KEY) {
-    throw new Error("Missing Gemini API Key. Please enter your API Key in the field at the top.");
+    throw new Error("Missing Gemini API Key. Set VITE_GEMINI_API_KEY in your .env file.");
   }
 
   const genAI = new GoogleGenerativeAI(API_KEY);
