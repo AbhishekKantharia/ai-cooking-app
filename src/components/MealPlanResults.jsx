@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { Utensils, ShoppingCart, Repeat, DollarSign, CheckCircle, AlertTriangle } from 'lucide-react';
 
+const tabs = [
+  { id: 'plan', label: 'Meal Plan', Icon: Utensils },
+  { id: 'grocery', label: 'Grocery List', Icon: ShoppingCart },
+  { id: 'subs', label: 'Substitutions', Icon: Repeat },
+  { id: 'budget', label: 'Budget', Icon: DollarSign },
+];
+
 const MealPlanResults = ({ data }) => {
   const [activeTab, setActiveTab] = useState('plan');
 
@@ -8,48 +15,36 @@ const MealPlanResults = ({ data }) => {
 
   return (
     <div className="glass-panel results-container">
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #dcdde1', paddingBottom: '10px' }}>
-        <button 
-          style={{ background: activeTab === 'plan' ? 'var(--primary-color)' : '#dcdde1', color: activeTab === 'plan' ? 'white' : '#2f3640' }}
-          onClick={() => setActiveTab('plan')}
-        >
-          <Utensils size={16} style={{marginRight: '6px', verticalAlign: 'text-bottom'}} /> Meal Plan
-        </button>
-        <button 
-          style={{ background: activeTab === 'grocery' ? 'var(--primary-color)' : '#dcdde1', color: activeTab === 'grocery' ? 'white' : '#2f3640' }}
-          onClick={() => setActiveTab('grocery')}
-        >
-          <ShoppingCart size={16} style={{marginRight: '6px', verticalAlign: 'text-bottom'}} /> Grocery List
-        </button>
-        <button 
-          style={{ background: activeTab === 'subs' ? 'var(--primary-color)' : '#dcdde1', color: activeTab === 'subs' ? 'white' : '#2f3640' }}
-          onClick={() => setActiveTab('subs')}
-        >
-          <Repeat size={16} style={{marginRight: '6px', verticalAlign: 'text-bottom'}} /> Substitutions
-        </button>
-        <button 
-          style={{ background: activeTab === 'budget' ? 'var(--primary-color)' : '#dcdde1', color: activeTab === 'budget' ? 'white' : '#2f3640' }}
-          onClick={() => setActiveTab('budget')}
-        >
-          <DollarSign size={16} style={{marginRight: '6px', verticalAlign: 'text-bottom'}} /> Budget
-        </button>
+      <div className="tab-bar" role="tablist">
+        {tabs.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={activeTab === id}
+            aria-controls={`panel-${id}`}
+            className={`tab-button ${activeTab === id ? 'active' : ''}`}
+            onClick={() => setActiveTab(id)}
+          >
+            <Icon size={16} /> {label}
+          </button>
+        ))}
       </div>
 
-      <div>
+      <div className="tab-panels">
         {activeTab === 'plan' && (
-          <div>
+          <div id="panel-plan" role="tabpanel">
             {data.meals.map((meal, index) => (
               <div key={index} className="meal-card">
                 <h3>{meal.type}: {meal.name}</h3>
                 <p style={{ margin: '8px 0', color: '#576574' }}>{meal.description}</p>
-                <small style={{ color: 'var(--secondary-color)', fontWeight: 'bold' }}>⏱ {meal.time}</small>
+                <small style={{ color: 'var(--secondary-color)', fontWeight: 'bold' }}>{meal.time}</small>
               </div>
             ))}
           </div>
         )}
 
         {activeTab === 'grocery' && (
-          <div className="meal-card">
+          <div id="panel-grocery" role="tabpanel" className="meal-card">
             <h3>Grocery List</h3>
             <ul className="ingredients-list">
               {data.groceryList.map((item, index) => (
@@ -63,7 +58,7 @@ const MealPlanResults = ({ data }) => {
         )}
 
         {activeTab === 'subs' && (
-          <div className="meal-card">
+          <div id="panel-subs" role="tabpanel" className="meal-card">
             <h3>Suggested Substitutions</h3>
             <ul className="ingredients-list">
               {data.substitutions.map((sub, index) => (
@@ -76,7 +71,7 @@ const MealPlanResults = ({ data }) => {
         )}
 
         {activeTab === 'budget' && (
-          <div className="meal-card">
+          <div id="panel-budget" role="tabpanel" className="meal-card">
             <h3>Budget Analysis</h3>
             <div className={`budget-alert ${data.budgetAnalysis.isFeasible ? 'success' : 'warning'}`}>
               {data.budgetAnalysis.isFeasible ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
