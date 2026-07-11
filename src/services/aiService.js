@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, Schema, Type } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType as Type } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY || "dummy_key");
