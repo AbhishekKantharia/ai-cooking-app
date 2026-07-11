@@ -15,7 +15,7 @@ function App() {
       setMealData(result);
     } catch (error) {
       console.error("Error generating meal plan:", error);
-      alert("Failed to generate meal plan. Please try again.");
+      alert(error.message || "Failed to generate meal plan. Please try again.");
     } finally {
       setIsLoading(false);
     }

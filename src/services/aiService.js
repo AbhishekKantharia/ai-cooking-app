@@ -1,49 +1,79 @@
-// Simulated AI service
-export const generateMealPlan = async (userInput) => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
+import { GoogleGenerativeAI, Schema, Type } from "@google/generative-ai";
 
-  // In a real app, we'd send userInput to Gemini API and parse the response
-  // Here we return a mock response that matches the expected structure.
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(API_KEY || "dummy_key");
+
+export const generateMealPlan = async (userInput) => {
+  if (!API_KEY) {
+    throw new Error("Missing VITE_GEMINI_API_KEY. Please add it to your .env file.");
+  }
   
-  return {
-    meals: [
-      {
-        type: 'Breakfast',
-        name: 'Avocado Toast with Egg',
-        description: 'Quick and nutritious to start your busy day.',
-        time: '10 mins'
-      },
-      {
-        type: 'Lunch',
-        name: 'Quinoa Salad Bowl',
-        description: 'Light lunch to avoid the afternoon slump.',
-        time: '15 mins'
-      },
-      {
-        type: 'Dinner',
-        name: 'Sheet Pan Lemon Herb Chicken',
-        description: 'Easy cleanup and minimal active cooking time.',
-        time: '35 mins'
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          meals: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                type: { type: Type.STRING },
+                name: { type: Type.STRING },
+                description: { type: Type.STRING },
+                time: { type: Type.STRING }
+              },
+              required: ["type", "name", "description", "time"]
+            }
+          },
+          groceryList: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                item: { type: Type.STRING },
+                amount: { type: Type.STRING },
+                category: { type: Type.STRING },
+                price: { type: Type.NUMBER }
+              },
+              required: ["item", "amount", "category", "price"]
+            }
+          },
+          substitutions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                original: { type: Type.STRING },
+                swap: { type: Type.STRING }
+              },
+              required: ["original", "swap"]
+            }
+          },
+          budgetAnalysis: {
+            type: Type.OBJECT,
+            properties: {
+              totalEstimatedCost: { type: Type.NUMBER },
+              isFeasible: { type: Type.BOOLEAN },
+              message: { type: Type.STRING }
+            },
+            required: ["totalEstimatedCost", "isFeasible", "message"]
+          }
+        },
+        required: ["meals", "groceryList", "substitutions", "budgetAnalysis"]
       }
-    ],
-    groceryList: [
-      { item: 'Avocado', amount: '2', category: 'Produce', price: 3.00 },
-      { item: 'Eggs', amount: '1 dozen', category: 'Dairy/Eggs', price: 4.50 },
-      { item: 'Whole wheat bread', amount: '1 loaf', category: 'Bakery', price: 3.50 },
-      { item: 'Quinoa', amount: '1 bag', category: 'Pantry', price: 5.00 },
-      { item: 'Mixed greens', amount: '1 box', category: 'Produce', price: 4.00 },
-      { item: 'Chicken breast', amount: '1 lb', category: 'Meat', price: 7.00 },
-      { item: 'Lemons', amount: '2', category: 'Produce', price: 1.50 }
-    ],
-    substitutions: [
-      { original: 'Eggs', swap: 'Tofu scramble (if vegan)' },
-      { original: 'Chicken', swap: 'Chickpeas or Paneer (if vegetarian)' }
-    ],
-    budgetAnalysis: {
-      totalEstimatedCost: 28.50,
-      isFeasible: userInput.budget ? 28.50 <= parseFloat(userInput.budget) : true,
-      message: 'This plan is budget-friendly as it utilizes overlapping ingredients like olive oil and spices from your pantry.'
     }
-  };
+  });
+
+  const prompt = `Generate a personalized daily cooking to-do list based on the following:
+  - Day description/Schedule: ${userInput.dayDescription}
+  - Budget constraints: ${userInput.budget ? '$' + userInput.budget : 'No budget'}
+  - Dietary preferences/restrictions: ${userInput.dietaryPrefs || 'None'}
+  
+  Please provide practical, realistic meal ideas (Breakfast, Lunch, Dinner) that fit the schedule. Ensure the grocery list is categorized and the prices are realistic estimates. Make sure the budget analysis reflects the provided constraints.`;
+
+  const result = await model.generateContent(prompt);
+  return JSON.parse(result.response.text());
 };
